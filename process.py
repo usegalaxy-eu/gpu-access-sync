@@ -29,7 +29,7 @@ def process(data):
     for idx, (submit_date, email, name, institution, working_group, date_start,
               how_long, space_needed, organisms, bacteria, plant,
               biological_question, data_type, file_types, how_many, agreement,
-              approved_denied, date_approved) in enumerate(data):
+              date_approved) in enumerate(data):
 
         date_approved = date_approved.strip()
 
@@ -54,6 +54,11 @@ def process(data):
 
         # Parse the allocatoin
         allocation = 0
+
+        # Not specified
+        if "I don't know" in space_needed or len(space_needed.strip()) == 0:
+            continue
+
         (size, spec) = space_needed.split(' ')
         if spec == 'GB':
             allocation = float(size)
@@ -100,6 +105,7 @@ def ensure(data):
         gx_user = gi.users.get_users(f_email=email)
         if len(gx_user) == 0:
             print("ERROR: %s was not found" % email)
+            continue
         # Get only first user
         gx_user = gx_user[0]
         # Ensure the quota exists
