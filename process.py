@@ -123,17 +123,19 @@ def ensure(data):
         # Default to empty list so if users are removed we update the quota
         users = expected_buckets.get(quota_name, [])
         # And now we'll update
+        # print(gi.quotas.show_quota(quota['id']))
+        print('[%s] BEFORE: %s' % (quota_name, ', '.join(sorted([user['user']['id'] for user in gi.quotas.show_quota(quota['id'])['users']]))))
+        print('[%s] AFTER : %s' % (quota_name, ', '.join(sorted([user['id'] for user in users]))))
 
-        print(quota_name, [x['id'] for x in users])
-        print(gi.quotas.update_quota(
+        gi.quotas.update_quota(
             quota['id'],
             default='unregistered',
-        ))
-        print(gi.quotas.update_quota(
+        )
+        gi.quotas.update_quota(
             quota['id'],
             default='no',
             in_users=[x['id'] for x in users]
-        ))
+        )
 
 
 ensure(process(data))
