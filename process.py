@@ -59,6 +59,7 @@ def process(data):
         if "I don't know" in space_needed or len(space_needed.strip()) == 0:
             continue
 
+        print("Project: %s %s %s %s", name, space_needed, date_start, date_approved)
         (size, spec) = space_needed.split(' ')
         if spec == 'GB':
             allocation = float(size)
