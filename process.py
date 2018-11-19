@@ -35,6 +35,7 @@ def process(data):
 
         # Not approved, ignore
         if len(date_approved) == 0:
+            print("Skipping %s due to unapproved" % name)
             continue
         # We will key on email
         key = email
@@ -44,6 +45,7 @@ def process(data):
         date_approved = parse(date_approved)
         # If this does not start yet safe to ignore.
         if date_start > TODAY:
+            print("Skipping %s due to not starting yet" % name)
             continue
 
         # Otherwise should be now + N months
@@ -57,9 +59,10 @@ def process(data):
 
         # Not specified
         if "I don't know" in space_needed or len(space_needed.strip()) == 0:
+            print("Skipping %s due to unknown space" % name)
             continue
 
-        print("Project: %s %s %s %s", name, space_needed, date_start, date_approved)
+        print("Project: %s %s %s %s" % (name, space_needed, date_start, date_approved))
         (size, spec) = space_needed.split(' ')
         if spec == 'GB':
             allocation = float(size)
