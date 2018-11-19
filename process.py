@@ -44,7 +44,7 @@ def process(data):
         date_start = parse(date_start)
         date_approved = parse(date_approved)
         # If this does not start yet safe to ignore.
-        if date_start > TODAY:
+        if date_start >= TODAY:
             print("Skipping %s due to not starting yet" % name)
             continue
 
