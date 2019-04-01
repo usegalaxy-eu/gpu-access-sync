@@ -44,9 +44,12 @@ def process(data):
         date_start = parse(date_start)
         date_approved = parse(date_approved)
         # If this does not start yet safe to ignore.
-        if date_start >= TODAY:
-            print("Skipping %s due to not starting yet (%s !>= %s)" % (name, date_start, TODAY))
-            continue
+        # HXR: Disabled because of multiple people complaining it wasn't
+        # immediately available, when they specified their project didn't start
+        # for N days.
+        # if date_start >= TODAY:
+            # print("Skipping %s due to not starting yet (%s !>= %s)" % (name, date_start, TODAY))
+            # continue
 
         # Otherwise should be now + N months
         if key not in processed:
