@@ -1,4 +1,3 @@
-import copy
 import datetime
 import os
 import yaml
@@ -65,7 +64,7 @@ def process(data):
             print("Skipping %s due to unknown space" % name)
             continue
 
-        print("Project: %s %s %s %s" % (name, space_needed, date_start, date_approved))
+        print("Project: %20s space=%4s start=%12s approved=%12s" % (name, space_needed, date_start, date_approved))
         (size, spec) = space_needed.split(' ')
         if spec == 'GB':
             allocation = float(size)
@@ -75,8 +74,8 @@ def process(data):
         # Generate the entry
         processed[key].append({
             'idx': idx,
-            'started': copy.copy(TODAY),
-            'expires': TODAY + days,
+            # 'started': date_approved,
+            'expires': date_start + days,
             'size': allocation
         })
 
@@ -105,9 +104,11 @@ def ensure_quota_exists(size):
 
 def ensure(data):
     expected_buckets = {}
+    user_id_map = {}
+
     # Bucket the users into lists based on quotas.
     for email in data:
-        valid_claims = [x for x in data[email] if TODAY < x['expires']]
+        valid_claims = [x for x in data[email] if TODAY <= x['expires']]
         needed_space = int(sum([x['size'] for x in valid_claims]))
         gx_user = gi.users.get_users(f_email=email)
         if len(gx_user) == 0:
@@ -116,6 +117,7 @@ def ensure(data):
         # Get only first user
         gx_user = gx_user[0]
         # Ensure the quota exists
+        user_id_map[email] = gx_user['id']
         ensure_quota_exists(needed_space)
         key = 'auto_%s' % needed_space
         if key not in expected_buckets:
@@ -131,8 +133,11 @@ def ensure(data):
         users = expected_buckets.get(quota_name, [])
         # And now we'll update
         # print(gi.quotas.show_quota(quota['id']))
-        print('[%s] BEFORE: %s' % (quota_name, ', '.join(sorted([user['user']['id'] for user in gi.quotas.show_quota(quota['id'])['users']]))))
-        print('[%s] AFTER : %s' % (quota_name, ', '.join(sorted([user['id'] for user in users]))))
+        current_quota_users = gi.quotas.show_quota(quota['id'])['users']
+        emails_before = [user_id_map.get(user['user']['id'], user['user']['id']) for user in current_quota_users]
+        emails_after = [user_id_map.get(user['id'], user['id']) for user in users]
+        print('[%s] BEFORE: %s' % (quota_name, ', '.join(sorted(emails_before))))
+        print('[%s] AFTER : %s' % (quota_name, ', '.join(sorted(emails_after))))
 
         gi.quotas.update_quota(
             quota['id'],
