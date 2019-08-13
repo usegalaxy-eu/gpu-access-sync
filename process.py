@@ -64,7 +64,7 @@ def process(data):
             print("Skipping %s due to unknown space" % name)
             continue
 
-        print("Project: %30s space=%4s start=%12s approved=%12s" % (name, space_needed, date_start, date_approved))
+        print("Project: %30s space=%6s start=%12s approved=%12s" % (name, space_needed, date_start, date_approved))
         (size, spec) = space_needed.split(' ')
         if spec == 'GB':
             allocation = float(size)
@@ -73,7 +73,7 @@ def process(data):
 
         # Generate the entry
         processed[key].append({
-            'idx': idx,
+            # 'idx': idx,
             # 'started': date_approved,
             'expires': date_start + days,
             'size': allocation
@@ -105,7 +105,6 @@ def ensure_quota_exists(size):
 def ensure(data):
     expected_buckets = {}
     user_id_map = {}
-    __import__('pprint').pprint(data)
 
     # Bucket the users into lists based on quotas.
     for email in data:
@@ -118,14 +117,12 @@ def ensure(data):
         # Get only first user
         gx_user = gx_user[0]
         # Ensure the quota exists
-        user_id_map[email] = gx_user['id']
+        user_id_map[gx_user['id']] = email
         ensure_quota_exists(needed_space)
         key = 'auto_%s' % needed_space
         if key not in expected_buckets:
             expected_buckets[key] = []
         expected_buckets[key].append(gx_user)
-
-    __import__('pprint').pprint(user_id_map)
 
     all_quotas = {q['name']: q for q in gi.quotas.get_quotas()
                   if 'auto_' in q['name']}
