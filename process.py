@@ -143,11 +143,11 @@ def ensure(data):
             quota['id'],
             default='unregistered',
         )
-        gi.quotas.update_quota(
+        print(gi.quotas.update_quota(
             quota['id'],
             default='no',
-            in_users=[x['id'] for x in users]
-        )
+            in_users=[user['id'] for user in users]
+        ))
 
 
 ensure(process(data))
