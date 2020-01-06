@@ -64,8 +64,8 @@ def process(data):
             print("Skipping %s due to unknown space" % name)
             continue
 
-        print("Project: %30s space=%6s start=%12s approved=%12s" % (name, space_needed, date_start, date_approved))
-        (size, spec) = space_needed.split(' ')
+        print("Project: %30s space='%6s' start=%12s approved=%12s" % (name, space_needed, date_start, date_approved))
+        (size, spec) = space_needed.strip().split(' ')
         if spec == 'GB':
             allocation = float(size)
         elif spec == 'TB':
