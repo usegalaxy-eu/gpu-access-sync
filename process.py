@@ -15,7 +15,7 @@ HOW_LONG = {
 }
 QUOTAS = None
 with open(os.environ['CONFIG_FILE'], 'r') as handle:
-    CONFIG = yaml.load(handle)
+    CONFIG = yaml.safe_load(handle)
 
 with open(CONFIG['filename'], 'r') as handle:
     data = [x.split('\t') for x in handle.read().split('\n')[1:]]
