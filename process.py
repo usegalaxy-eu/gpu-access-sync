@@ -25,7 +25,6 @@ def add_users():
 
     # create a list of users that have been approved to use
     approved_user_ids = list()
-    print(data)
     for idx, line in enumerate(data):
         if len(line) == 6:
             submit_date, email, name, institution, agreement, date_approved = line
@@ -66,7 +65,6 @@ def add_users():
     all_roles = rc.get_roles()
     gpu_role = None
     for item in enumerate(all_roles):
-        print(item)
         if item[1]["name"] == gpu_access_role:
             gpu_role = item
             break
