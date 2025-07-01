@@ -26,8 +26,8 @@ def add_users():
     # create a list of users that have been approved to use
     approved_user_ids = list()
     for idx, line in enumerate(data):
-        if len(line) == 6:
-            submit_date, email, name, institution, agreement, date_approved = line
+        if len(line) == 7:
+            submit_date, email, name, institution, agreement, _, date_approved = line # 6 line was added by accident and we can not remove it anymore
         date_approved = date_approved.strip()
         if len(date_approved) == 0:
             print("Skipping %s due to unapproved" % name)
