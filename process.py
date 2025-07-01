@@ -27,7 +27,7 @@ def add_users():
     approved_user_ids = list()
     for idx, line in enumerate(data):
         if len(line) == 7:
-            submit_date, email, name, institution, agreement, _, date_approved = line # 6 line was added by accident and we can not remove it anymore
+            submit_date, _, name, institution, agreement, email, date_approved = line  # a new column was added by accident and we can not remove it anymore
         date_approved = date_approved.strip()
         if len(date_approved) == 0:
             print("Skipping %s due to unapproved" % name)
