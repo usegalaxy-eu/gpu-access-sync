@@ -26,14 +26,19 @@ def add_users():
     # create a list of users that have been approved to use
     approved_user_emails = set()
     for idx, line in enumerate(data):
+    approved_user_emails = set()
+    for idx, line in enumerate(data):
         if len(line) != 7:
             print(f"Could not validate line {idx}, skipping")
             continue
         submit_date, _, name, institution, agreement, email, date_approved = line  # a new column was added by accident and we can not remove it anymore
-        if len(date_approved.strip()) > 0:
-            approved_user_emails.add(email)
-        else:
+        if len(date_approved.strip()) == 0:
             print(f"Skipping {name} due to unapproved")
+            continue
+        if len(email.strip()) == 0:
+            print(f"Skipping, email missing in line {idx}")
+            continue
+        approved_user_emails.add(email)
 
     rolesclient = galaxy.roles.RolesClient(gi)
     groupsclient = galaxy.groups.GroupsClient(gi)
