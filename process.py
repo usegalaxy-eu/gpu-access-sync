@@ -59,7 +59,7 @@ def add_users():
     groupsclient = galaxy.groups.GroupsClient(gi)
 
     groupsclient.update_group(
-        group_id=gpu_group_id, user_ids=user_ids, role_ids=gpu_role_id
+        group_id=gpu_group_id, user_ids=user_ids, role_ids=[gpu_role_id]
     )
 
 
