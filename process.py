@@ -3,73 +3,64 @@ import yaml
 
 from bioblend import galaxy
 
-config_file = os.environ['CONFIG_FILE']
-
-# create a role and a group in Galaxy
-gpu_access_role = "gpu_access_validated"
-gpu_access_group = "gpu_access_validated"
 
 # form link: https://docs.google.com/forms/d/e/1FAIpQLSd-isWRKIX9QVRNJAEBVfh4pLpR3NsOAdOSgKpZH9sKdJ0rBg/viewform
+def get_str_from_env_or_error(env: str) -> str:
+    if len(from_env := os.environ.get(env, "").strip()) > 0:
+        return from_env
+    raise ValueError("Environment variable not found!")
 
 
-with open(config_file, 'r') as handle:
+config_file_name = get_str_from_env_or_error("CONFIG_FILE")
+gpu_role_id = get_str_from_env_or_error("GPU_ROLE_ID")
+gpu_group_id = get_str_from_env_or_error("GPU_GROUP_ID")
+
+with open(config_file_name, "r") as handle:
     CONFIG = yaml.safe_load(handle)
 
-with open(CONFIG['filename'], 'r') as handle:
-    data = [x.split('\t') for x in handle.read().split('\n')[1:]]
+with open(CONFIG["filename"], "r") as handle:
+    data = [x.split("\t") for x in handle.read().split("\n")[1:]]
 
-gi = galaxy.GalaxyInstance(url=CONFIG['url'], key=CONFIG['key'])
+gi = galaxy.GalaxyInstance(url=CONFIG["url"], key=CONFIG["key"])
 
 
 def add_users():
-
-    # create a list of users that have been approved to use
-    approved_user_ids = list()
+    """
+    Get a list of user related emails from a list of rows.
+    Then queries Galaxy's API to convert this list into encoded user IDs
+    And finally substitutes the members of the Group GPU_GROUP_ID to this list of user IDs
+    and the roles attached to that group by the Role GPU_ROLE_ID
+    """
+    approved_user_emails = set()
     for idx, line in enumerate(data):
-        if len(line) == 7:
-            submit_date, _, name, institution, agreement, email, date_approved = line  # a new column was added by accident and we can not remove it anymore
-        date_approved = date_approved.strip()
-        if len(date_approved) == 0:
-            print("Skipping %s due to unapproved" % name)
+        if len(line) != 7:
+            print(f"Could not validate line {idx}, skipping")
             continue
-        approved_user_ids.append(email)
+        submit_date, _, name, institution, agreement, email, date_approved = (
+            line  # a new column was added by accident and we can not remove it anymore
+        )
+        if len(date_approved.strip()) == 0:
+            print(f"Skipping {name} due to unapproved")
+            continue
+        if len(email.strip()) == 0:
+            print(f"Skipping, email missing in line {idx}")
+            continue
+        approved_user_emails.add(email)
 
-    rc = galaxy.roles.RolesClient(gi)
-    gc = galaxy.groups.GroupsClient(gi)
-    uc = galaxy.users.UserClient(gi)
+    usersclient = galaxy.users.UserClient(gi)
 
-    # find the correct group
-    all_groups = gc.get_groups()
-    gpu_group = None
-    for gp in all_groups:
-        if gp["name"] == gpu_access_group:
-            gpu_group = gp
-            break
-    if not gpu_group:
-        exit(f'Could not find "{gpu_access_group}". Please create this group in your Galaxy instance.')
+    user_ids = []
 
-    # find all users that have been added to the correct group
-    all_added_users = gc.get_group_users(group_id=gpu_group["id"])
-
-    # get a list of users that need to be added to the group
-    new_users = list(set(approved_user_ids).difference(set([item["email"] for item in all_added_users])))
-
-    l_user_ids = list()
-    # get user ids
-    for i, item in enumerate(new_users):
-        user = uc.get_users(f_email=item)
+    for user_email in approved_user_emails:
+        user = usersclient.get_users(f_email=user_email)
         if len(user) > 0:
-            l_user_ids.append(user[0]["id"])
+            user_ids.append(user[0]["id"])
 
-    # get the correct role
-    all_roles = rc.get_roles()
-    gpu_role = None
-    for item in enumerate(all_roles):
-        if item[1]["name"] == gpu_access_role:
-            gpu_role = item
-            break
-    # add approved users to correct group and role
-    gc.update_group(group_id=gpu_group["id"], user_ids=l_user_ids, role_ids=[gpu_role[1]["id"]])
+    groupsclient = galaxy.groups.GroupsClient(gi)
+
+    groupsclient.update_group(
+        group_id=gpu_group_id, user_ids=user_ids, role_ids=[gpu_role_id]
+    )
 
 
 add_users()
